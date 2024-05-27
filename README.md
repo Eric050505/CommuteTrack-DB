@@ -12,7 +12,7 @@ Same as above but in`Java`.
 
 ### `out`
 
-This directory only contains all the files that `Scripts ` generated.
+This directory only contains all the files that `Scripts` generated.
 
 ### `out_from_Java`
 
