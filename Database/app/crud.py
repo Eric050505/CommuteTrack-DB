@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import logging
 
 from sqlalchemy.orm import Session
@@ -128,7 +128,7 @@ def p_board(db: Session, passenger_id: str, start_station: str):
                 logging.error("This passenger has not finished the last ride!")
                 return {"error": "This passenger has not finished the last ride!"}
 
-        start_time = datetime.now()
+        start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         new_ride = models.PassengerRide(
             passenger_id=passenger_id,
             start_station=start_station,
@@ -177,15 +177,17 @@ def p_alight(db: Session, passenger_id: str, start_station: str, end_station: st
         return {"error": f"Error alighting passenger: {e}"}
 
 
-def c_board(db: Session, card_code: str, start_station: str):
+def c_board(db: Session, card_code: int, start_station: str):
     try:
         unfinished = get_unfinished_card_rides(db)
+        logging.info(f"Card boarded successfully. {unfinished}")
+
         for ride in unfinished:
             if ride.card_code == card_code:
                 logging.error("This card has not finished the last ride!")
                 return {"error": "This card has not finished the last ride!"}
 
-        start_time = datetime.now()
+        start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         new_ride = models.CardRide(
             card_code=card_code,
             start_station=start_station,
@@ -203,7 +205,7 @@ def c_board(db: Session, card_code: str, start_station: str):
         return {"error": f"Error boarding card: {e}"}
 
 
-def c_alight(db: Session, card_code: str, start_station: str, end_station: str):
+def c_alight(db: Session, card_code: int, start_station: str, end_station: str):
     try:
         unfinished = get_unfinished_card_rides(db)
         for ride in unfinished:
@@ -213,7 +215,7 @@ def c_alight(db: Session, card_code: str, start_station: str, end_station: str):
                     logging.error("Error: Price not found for the given stations")
                     return {"error": "Price not found for the given stations"}
 
-                end_time = datetime.now()
+                end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 db.query(models.CardRide).filter(
                     models.CardRide.card_code == card_code,
                     models.CardRide.end_time == None

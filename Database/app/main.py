@@ -90,7 +90,7 @@ def p_alight(passenger_id: str, start_station: str, end_station: str, db: Sessio
 
 
 @app.post("/c_board/{card_code}/{start_station}", response_model=Dict[str, Any])
-def c_board(card_code: str, start_station: str, db: Session = Depends(get_db)):
+def c_board(card_code: int, start_station: str, db: Session = Depends(get_db)):
     result = crud.c_board(db, card_code, start_station)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -98,7 +98,7 @@ def c_board(card_code: str, start_station: str, db: Session = Depends(get_db)):
 
 
 @app.post("/c_alight/{card_code}/{start_station}/{end_station}", response_model=Dict[str, Any])
-def c_alight(card_code: str, start_station: str, end_station: str, db: Session = Depends(get_db)):
+def c_alight(card_code: int, start_station: str, end_station: str, db: Session = Depends(get_db)):
     result = crud.c_alight(db, card_code, start_station, end_station)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
