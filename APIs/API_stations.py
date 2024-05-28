@@ -14,15 +14,15 @@ class StationTable:
         self.cursor = self.connection.cursor()
         self.cursor.execute("SET search_path TO project")
 
-    def add_station(self, chinese_name, english_name, district, intro):
+    def add_station(self, chinese_name, english_name, district, intro, status):
         try:
             self.cursor.execute(sql.SQL("SELECT setval('stations_station_id_seq', "
                                         "(SELECT MAX(station_id) FROM stations))"))
             self.cursor.execute(
                 sql.SQL(
                     "INSERT INTO stations "
-                    "(chinese_name, english_name, district, intro) VALUES (%s, %s, %s, %s)"),
-                [chinese_name, english_name, district, intro]
+                    "(chinese_name, english_name, district, intro, status) VALUES (%s, %s, %s, %s, %s)"),
+                [chinese_name, english_name, district, intro, status]
             )
             self.connection.commit()
             print("Station " + english_name + " added successfully.")
@@ -30,7 +30,8 @@ class StationTable:
             self.connection.rollback()
             print(f"Error adding station: {e}")
 
-    def modify_station(self, station_id, chinese_name=None, english_name=None, district=None, intro=None):
+    def modify_station(self, station_id, chinese_name=None, english_name=None, district=None,
+                       intro=None, status=None):
         try:
             query = sql.SQL("UPDATE stations SET ")
             updates = []
@@ -47,6 +48,9 @@ class StationTable:
             if intro is not None:
                 updates.append(sql.SQL("intro = %s"))
                 params.append(intro)
+            if status is not None:
+                updates.append(sql.SQL("status = %s"))
+                params.append(status)
 
             if not updates:
                 print("No fields to update.")

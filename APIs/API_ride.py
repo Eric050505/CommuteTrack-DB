@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import sql
 from datetime import datetime
+from Project.APIs.API_queries import Queries
 
 
 class RideTable:
@@ -14,10 +15,11 @@ class RideTable:
         )
         self.cursor = self.connection.cursor()
         self.cursor.execute("SET search_path TO project")
+        self.query = Queries(database, user, password, host, port)
 
     def passenger_board(self, passenger_id, start_station):
         try:
-            unfinished = self.query_unfinished_passenger_rides()
+            unfinished = self.query.get_unfinished_passenger_rides()
             for passenger in unfinished:
                 if passenger[0] == str(passenger_id):
                     print("Error: This passenger has not been finished last ride! ")
@@ -39,11 +41,11 @@ class RideTable:
 
     def passenger_alight(self, passenger_id, start_station, end_station):
         try:
-            unfinished = self.query_unfinished_passenger_rides()
+            unfinished = self.query.get_unfinished_passenger_rides()
             for passenger in unfinished:
                 if passenger[0] == str(passenger_id):
                     end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-                    price = self.get_price(start_station, end_station)[0][0]
+                    price = self.query.get_price(start_station, end_station)[0][0]
                     self.cursor.execute(
                         sql.SQL(
                             "UPDATE passenger_ride SET end_station = %s, end_time = %s, price = %s "
@@ -60,7 +62,7 @@ class RideTable:
 
     def card_board(self, card_code, start_station):
         try:
-            unfinished = self.query_unfinished_card_rides()
+            unfinished = self.query.get_unfinished_card_rides()
             for passenger in unfinished:
                 if passenger[0] == card_code:
                     print("Error: This card has not been finished last ride! ")
@@ -82,10 +84,10 @@ class RideTable:
 
     def card_alight(self, card_code, start_station, end_station):
         try:
-            unfinished = self.query_unfinished_card_rides()
+            unfinished = self.query.get_unfinished_card_rides()
             for passenger in unfinished:
                 if passenger[0] == card_code:
-                    price = self.get_price(start_station, end_station)[0][0]
+                    price = self.query.get_price(start_station, end_station)[0][0]
                     end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                     self.cursor.execute(
                         sql.SQL(
@@ -113,40 +115,6 @@ class RideTable:
         except Exception as e:
             self.connection.rollback()
             print(f"Error alighting card: {e}")
-
-    def query_unfinished_passenger_rides(self):
-        try:
-            self.cursor.execute(
-                sql.SQL("SELECT passenger_id, start_station, start_time FROM passenger_ride WHERE end_time IS NULL")
-            )
-            unfinished_passenger_rides = self.cursor.fetchall()
-
-            return unfinished_passenger_rides
-        except Exception as e:
-            print(f"Error querying unfinished rides: {e}")
-            return None, None
-
-    def query_unfinished_card_rides(self):
-        try:
-            self.cursor.execute(
-                sql.SQL("SELECT card_code, start_station, start_time FROM card_ride WHERE end_time IS NULL")
-            )
-            unfinished_card_rides = self.cursor.fetchall()
-
-            return unfinished_card_rides
-        except Exception as e:
-            print(f"Error querying unfinished rides: {e}")
-            return None, None
-
-    def get_price(self, start_station, end_station):
-        self.cursor.execute(sql.SQL(
-            "SELECT DISTINCT price FROM (SELECT end_station_id, price.price FROM price "
-            "JOIN stations ON start_station_id = stations.station_id "
-            "WHERE english_name = %s) as t "
-            "JOIN stations ON end_station_id = stations.station_id "
-            "WHERE english_name = %s"
-        ), [start_station, end_station])
-        return self.cursor.fetchall()
 
     def close(self):
         self.cursor.close()
