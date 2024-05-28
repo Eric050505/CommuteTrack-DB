@@ -16,7 +16,34 @@ class Queries:
         )
         self.cursor = self.connection.cursor()
         self.cursor.execute("SET search_path TO project")
+        self.data = self.get_data()
         self.graph = self.get_graph()
+
+    def get_graph(self):
+        self.cursor.execute(sql.SQL(
+            "SELECT line_id, running_speed from lines"
+        ))
+        result = self.cursor.fetchall()
+        speed = {}
+        for i in range(len(result)):
+            speed[result[i][0]] = float(result[i][1])
+        graph = defaultdict(list)
+        for i in range(len(self.data) - 1):
+            this_line = self.data[i][0]
+            next_line = self.data[i + 1][0]
+            if this_line == next_line:
+                if not graph[self.data[i][1]].__contains__((self.data[i][0], self.data[i + 1][1], speed[this_line])):
+                    graph[self.data[i][1]].append((this_line, self.data[i + 1][1], speed[this_line]))
+                if not graph[self.data[i + 1][1]].__contains__((self.data[i][0], self.data[i][1], speed[this_line])):
+                    graph[self.data[i + 1][1]].append((this_line, self.data[i][1], speed[this_line]))
+
+        return graph
+
+    def get_data(self):
+        self.cursor.execute(sql.SQL(
+            "SELECT line_id, station_id from lines_detail"
+        ))
+        return self.cursor.fetchall()
 
     def query_adjacent_stations(self, line_id, station_id, n):
         try:
@@ -79,22 +106,7 @@ class Queries:
         ), [start_station, end_station])
         return self.cursor.fetchall()
 
-    def get_graph(self):
-        self.cursor.execute(sql.SQL(
-            "SELECT line_id, station_id from lines_detail"
-        ))
-        results = self.cursor.fetchall()
-        graph = defaultdict(list)
-        for i in range(len(results) - 1):
-            if results[i][0] == results[i + 1][0]:
-                if not graph[results[i][1]].__contains__(results[i + 1][1]):
-                    graph[results[i][1]].append(results[i + 1][1])
-                if not graph[results[i + 1][1]].__contains__(results[i][1]):
-                    graph[results[i + 1][1]].append(results[i][1])
-
-        return graph
-
-    def get_shortest_path(self, start_station, end_station):
+    def get_path_least_stations(self, start_station, end_station):
         self.cursor.execute(sql.SQL(
             "SELECT station_id FROM stations WHERE english_name = %s"
         ), [start_station])
@@ -103,10 +115,22 @@ class Queries:
             "SELECT station_id FROM stations WHERE english_name = %s"
         ), [end_station])
         end_station_id = self.cursor.fetchall()[0][0]
-        min_dist, shortest_path = self.dijkstra(start_station_id, end_station_id)
+        min_dist, shortest_path = self.dijkstra_single(start_station_id, end_station_id)
         return min_dist, shortest_path
 
-    def dijkstra(self, start_station_id, end_station_id):
+    def get_path_shortest_time(self, start_station, end_station):
+        self.cursor.execute(sql.SQL(
+            "SELECT station_id FROM stations WHERE english_name = %s"
+        ), [start_station])
+        start_station_id = self.cursor.fetchall()[0][0]
+        self.cursor.execute(sql.SQL(
+            "SELECT station_id FROM stations WHERE english_name = %s"
+        ), [end_station])
+        end_station_id = self.cursor.fetchall()[0][0]
+        min_dist, shortest_path = self.dijkstra_time(start_station_id, end_station_id)
+        return min_dist, shortest_path
+
+    def dijkstra_single(self, start_station_id, end_station_id):
         shortest_path = []
         queue = [(0, start_station_id, shortest_path)]
         visited = set()
@@ -120,6 +144,7 @@ class Queries:
             if curr_station_id == end_station_id:
                 return cost, path
             for adjacent in self.graph[curr_station_id]:
+                adjacent = adjacent[1]
                 if adjacent in visited:
                     continue
                 prev_cost = min_dist.get(adjacent, float('inf'))
@@ -127,6 +152,58 @@ class Queries:
                 if next_cost < prev_cost:
                     min_dist[adjacent] = next_cost
                     heapq.heappush(queue, (next_cost, adjacent, path))
+        if not shortest_path:
+            return float('inf'), []
+        else:
+            return min_dist[start_station_id], shortest_path
+
+    def dijkstra_multiple(self, start_station_id, end_station_id):
+        paths = defaultdict(list)
+        queue = [(0, start_station_id, [start_station_id])]
+        min_dist = {start_station_id: 0}
+        paths[start_station_id].append([start_station_id])
+
+        while queue:
+            (cost, curr_station_id, path) = heapq.heappop(queue)
+            if cost > min_dist[curr_station_id]:
+                continue
+            for adjacent in self.graph[curr_station_id]:
+                adjacent = adjacent[1]
+                next_cost = cost + 1
+                if next_cost < min_dist.get(adjacent, float('inf')):
+                    min_dist[adjacent] = next_cost
+                    heapq.heappush(queue, (next_cost, adjacent, path + [curr_station_id]))
+                elif next_cost == min_dist.get(adjacent):
+                    paths[adjacent].append(path + [curr_station_id])
+                    heapq.heappush(queue, (next_cost, adjacent, path + [curr_station_id]))
+
+        return min_dist[end_station_id], paths[end_station_id]
+
+    def dijkstra_time(self, start_station_id, end_station_id):
+        shortest_path = []
+        queue = [(0, start_station_id, shortest_path)]
+        visited = set()
+        min_dist = {start_station_id: 0}
+        while queue:
+            (cost, curr_station_id, path) = heapq.heappop(queue)
+            if curr_station_id in visited:
+                continue
+            path = path + [curr_station_id]
+            visited.add(curr_station_id)
+            if curr_station_id == end_station_id:
+                return cost, path
+            for adjacent in self.graph[curr_station_id]:
+                weight = adjacent[2]
+                adjacent_id = adjacent[1]
+                if adjacent_id in visited:
+                    continue
+                prev_cost = min_dist.get(adjacent_id, float('inf'))
+                next_cost = cost + weight
+                if self.data[curr_station_id][0] != self.data[adjacent_id][0]:
+                    next_cost += 3
+                if next_cost < prev_cost:
+                    min_dist[adjacent_id] = next_cost
+                    heapq.heappush(queue, (next_cost, adjacent_id, path))
         if not shortest_path:
             return float('inf'), []
         else:
