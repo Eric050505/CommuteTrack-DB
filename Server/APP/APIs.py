@@ -6,6 +6,7 @@ from . import ORMs, schemas
 from .database import SessionLocal, engine
 from .CRUD import Update, Delete, Read, Create
 import logging
+import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -24,7 +25,8 @@ def get_db():
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
+    now = datetime.datetime.now()
+    return {f"message": f"Welcome to SUSTech CS307! {now}"}
 
 
 @app.get("/lines/{line_id}")
@@ -196,3 +198,20 @@ def read_path_shortest_time(start_station: str, end_station: str, db: Session = 
     if min_dist == float('inf'):
         raise HTTPException(status_code=404, detail="Path not found")
     return min_dist, shortest_path
+
+
+@app.post("/add_passenger", response_model=Dict[str, Any])
+def add_passenger(passenger_create: schemas.PassengerCreate, db: Session = Depends(get_db)):
+    passenger = Create.add_passenger(db, passenger_create)
+    logging.info(f"Passenger: {passenger}")
+    if not passenger:
+        raise HTTPException(status_code=400, detail="Error adding passenger")
+    return {"message": f"Passenger {passenger.name} added successfully"}
+
+
+@app.post("/add_card", response_model=Dict[str, Any])
+def add_card(card_create: schemas.CardCreate, db: Session = Depends(get_db)):
+    card = Create.add_card(db, card_create)
+    if not card:
+        raise HTTPException(status_code=400, detail="Error adding card")
+    return {"message": f"Card {card.code} added successfully"}

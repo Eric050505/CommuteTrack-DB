@@ -1,4 +1,9 @@
-POST http://127.0.0.1:8006/c_alight/881676828/Tanglang/Chiwei
-
+POST http://10.27.117.57:8007/add_card
 Content-Type: application/json
 
+{
+
+        "code": 123456789,
+        "money": 10000
+
+}

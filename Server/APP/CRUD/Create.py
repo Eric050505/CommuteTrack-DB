@@ -119,3 +119,38 @@ def c_board(db: Session, card_code: int, start_station: str):
         db.rollback()
         logging.error(f"Error boarding card: {e}")
         return {"error": f"Error boarding card: {e}"}
+
+
+def add_passenger(db: Session, passenger_create: PassengerCreate):
+    try:
+        db.execute(text("SELECT setval('passenger_passenger_id_seq', (SELECT MAX(passenger_id) FROM passenger));"))
+        new_passenger = ORMs.Passenger(**passenger_create.dict())
+        logging.info(f"Passenger {new_passenger} added. !")
+        db.add(new_passenger)
+        db.commit()
+        db.refresh(new_passenger)
+        logging.info(f"Passenger {new_passenger.name} added successfully.")
+        return new_passenger
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error adding passenger: {e}")
+        return None
+
+
+def add_card(db: Session, card_create: CardCreate):
+    try:
+        db.execute(text("SELECT setval('cards_card_id_seq', (SELECT MAX(card_id) FROM cards));"))
+        new_card = ORMs.Cards(
+            code=card_create.code,
+            money=card_create.money,
+            create_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        )
+        db.add(new_card)
+        db.commit()
+        db.refresh(new_card)
+        logging.info(f"Code {new_card.code} added successfully.")
+        return new_card
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error adding code: {e}")
+        return None

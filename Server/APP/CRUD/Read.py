@@ -7,7 +7,6 @@ from .. import ORMs
 
 
 def get_line(db: Session, line_id: int):
-    logging.info(f"Start station ID: {line_id}")
     return db.query(ORMs.Line).filter(ORMs.Line.line_id == line_id).first()
 
 

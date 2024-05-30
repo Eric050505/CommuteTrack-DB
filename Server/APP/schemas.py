@@ -3,19 +3,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class LineBase(BaseModel):
-    line_id: int
-    Chinese_name: str
-    start_time: str
-    end_time: str
-    mileage: float
-    color: str
-    first_opening: str
-    intro: str
-    url: str
-    running_speed: float = float('inf')
-
-
 class LineCreate(BaseModel):
     chinese_name: str
     start_time: str
@@ -26,13 +13,6 @@ class LineCreate(BaseModel):
     intro: str
     url: str
     running_speed: float
-
-
-class Line(LineBase):
-    line_id: int
-
-    class Config:
-        from_attributes = True
 
 
 class LineUpdate(BaseModel):
@@ -47,27 +27,12 @@ class LineUpdate(BaseModel):
     running_speed: Optional[float] = None
 
 
-class StationBase(BaseModel):
+class StationCreate(BaseModel):
     chinese_name: str
     english_name: str
     district: str
     intro: str
     status: str
-
-
-class StationCreate(StationBase):
-    chinese_name: str
-    english_name: str
-    district: str
-    intro: str
-    status: str
-
-
-class Station(StationBase):
-    station_id: int
-
-    class Config:
-        from_attributes = True
 
 
 class StationUpdate(BaseModel):
@@ -78,12 +43,7 @@ class StationUpdate(BaseModel):
     status: Optional[str] = None
 
 
-class LinesDetailBase(BaseModel):
-    station_id: int
-    nums: int
-
-
-class LinesDetailCreate(LinesDetailBase):
+class LinesDetailCreate(BaseModel):
     station_id: int
     nums: int
 
@@ -92,10 +52,14 @@ class LinesDetailUpdate(BaseModel):
     nums: int
 
 
-class LinesDetail(LinesDetailCreate):
-    line_id: int
-    station_id: int
+class PassengerCreate(BaseModel):
+    id_number: str
+    name: str
+    phone_number: str
+    gender: str
+    district: str
 
-    class Config:
-        from_attributes = True
 
+class CardCreate(BaseModel):
+    code: int
+    money: float
