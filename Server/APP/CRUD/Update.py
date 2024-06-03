@@ -4,7 +4,7 @@ from .Read import *
 
 from sqlalchemy.orm import Session
 from .. import ORMs
-from ..schemas import LineUpdate, StationUpdate
+from ..schemas import LineUpdate, StationUpdate, UserUpdate
 import logging
 
 
@@ -151,3 +151,25 @@ def p_alight(db: Session, passenger_id: str, start_station: str, end_station: st
         db.rollback()
         logging.error(f"Error alighting passenger: {e}")
         return {"error": f"Error alighting passenger: {e}"}
+
+
+def modify_user(db: Session, user_name: str, user_update: UserUpdate):
+    try:
+        user = db.query(ORMs.UserIdentity).filter(ORMs.UserIdentity.user_name == user_name).first()
+        if not user:
+            return None
+
+        if user_update.password is not None:
+            user.password = user_update.password
+        if user_update.permission is not None:
+            user.permission = user_update.permission
+
+        db.commit()
+        db.refresh(user)
+        logging.info(f"User {user_name} modified successfully.")
+        return user
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error modifying user: {e}")
+        return None
+

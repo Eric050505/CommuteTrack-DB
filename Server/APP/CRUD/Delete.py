@@ -1,6 +1,7 @@
 from .Read import *
 from sqlalchemy.orm import Session
 from .. import ORMs
+from ..schemas import *
 
 
 def delete_line(db: Session, line_id: int):
@@ -60,3 +61,23 @@ def remove_station_in_line(db: Session, line_id: int, station_id: int):
         db.rollback()
         print(f"Error removing station from line: {e}")
         return {"error": str(e)}
+
+
+def delete_user(db: Session, user_name: str, user_delete: UserDelete):
+    try:
+        user = db.query(ORMs.UserIdentity).filter(ORMs.UserIdentity.user_name == user_name).first()
+        password = db.query(ORMs.UserIdentity.password).filter(
+            ORMs.UserIdentity.user_name == user_name).first()[0]
+        if not user:
+            return None
+        if password == user_delete.password:
+            db.delete(user)
+            db.commit()
+            logging.info(f"User {user.user_name} deleted successfully.")
+            return user.user_name
+        else:
+            logging.info(f"Wrong Password. Please try again.")
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error deleting line: {e}")
+        return None

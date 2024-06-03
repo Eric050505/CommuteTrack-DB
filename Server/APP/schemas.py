@@ -63,3 +63,36 @@ class PassengerCreate(BaseModel):
 class CardCreate(BaseModel):
     code: int
     money: float
+
+
+class UserCreate(BaseModel):
+    user_name: str
+    password: str
+    passenger_id: Optional[str] = None
+    card_code: Optional[str] = None
+    permission: str = "normal"
+
+
+class UserUpdate(BaseModel):
+    password: Optional[str] = None
+    permission: Optional[str] = None
+
+
+class UserDelete(BaseModel):
+    password: str
+
+
+class PassengerSearch(BaseModel):
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    price: Optional[int] = None
+    start_station: Optional[str] = None
+    end_station: Optional[str] = None
+
+
+class CardSearch(BaseModel):
+    start_station: Optional[str] = None
+    end_station: Optional[str] = None
+    price: Optional[int] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None

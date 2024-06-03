@@ -14,10 +14,15 @@ passenger_table = Table('passenger', metadata, autoload_with=engine)
 passenger_ride_table = Table('passenger_ride', metadata, autoload_with=engine)
 price_table = Table('price', metadata, autoload_with=engine)
 stations_table = Table('stations', metadata, autoload_with=engine)
+user_identity_table = Table('user_identity', metadata, autoload_with=engine)
 
 
 class BusInfo(Base):
     __table__ = bus_info_table
+
+
+class OutInfo(Base):
+    __table__ = out_info_table
 
 
 class CardRide(Base):
@@ -36,10 +41,6 @@ class LinesDetail(Base):
     __table__ = lines_detail_table
 
 
-class OutInfo(Base):
-    __table__ = out_info_table
-
-
 class Passenger(Base):
     __table__ = passenger_table
 
@@ -54,3 +55,7 @@ class Price(Base):
 
 class Stations(Base):
     __table__ = stations_table
+
+
+class UserIdentity(Base):
+    __table__ = user_identity_table

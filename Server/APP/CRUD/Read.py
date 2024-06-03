@@ -4,10 +4,27 @@ import logging
 
 from sqlalchemy.orm import Session
 from .. import ORMs
+from .. import schemas
 
 
-def get_line(db: Session, line_id: int):
-    return db.query(ORMs.Line).filter(ORMs.Line.line_id == line_id).first()
+def get_line(db: Session, chinese_name: str):
+    return db.query(ORMs.Line).filter(ORMs.Line.chinese_name == chinese_name).first()
+
+
+def get_card(db: Session, card_code: int):
+    return db.query(ORMs.Cards).filter(ORMs.Cards.code == card_code).first()
+
+
+def get_passenger(db: Session, id_number: str):
+    return db.query(ORMs.Passenger).filter(ORMs.Passenger.id_number == id_number).first()
+
+
+def get_station(db: Session, english_name: str):
+    return db.query(ORMs.Stations).filter(ORMs.Stations.english_name == english_name).first()
+
+
+def get_user(db: Session, user_name: str):
+    return db.query(ORMs.UserIdentity).filter(ORMs.UserIdentity.user_name == user_name).first()
 
 
 def get_price(db: Session, start_station: str, end_station: str):
@@ -128,7 +145,7 @@ def get_graph(db: Session):
     for line_id, running_speed in result:
         speed[line_id] = float(running_speed)
 
-    data = get_lines_d(db)
+    data = tuple(get_lines_d(db))
     for i in range(len(data) - 1):
         this_line = data[i][0]
         next_line = data[i + 1][0]
@@ -142,7 +159,9 @@ def get_graph(db: Session):
 
 
 def get_lines_d(db: Session):
-    return db.query(ORMs.LinesDetail.line_id, ORMs.LinesDetail.station_id).all()
+    return db.query(ORMs.LinesDetail.line_id, ORMs.LinesDetail.station_id).join(ORMs.Stations,
+                                                                                ORMs.LinesDetail.station_id == ORMs.Stations.station_id).filter(
+        ORMs.Stations.status == 'running')
 
 
 def get_path_least_stations(db: Session, start_station: str, end_station: str):
@@ -160,8 +179,8 @@ def get_path_shortest_time(db: Session, start_station: str, end_station: str):
         db.query(ORMs.Stations.station_id).filter(ORMs.Stations.english_name == start_station).first()[0]
     end_station_id = db.query(ORMs.Stations.station_id).filter(ORMs.Stations.english_name == end_station).first()[0]
 
-    graph = get_graph(db)  # 确保图是最新的
-    data = get_lines_d(db)  # 获取线路数据
+    graph = get_graph(db)
+    data = get_lines_d(db)
     min_dist, shortest_path = dijkstra_time(graph, data, start_station_id, end_station_id)
     return min_dist, shortest_path
 
@@ -227,3 +246,51 @@ def dijkstra_single(graph, start_station_id, end_station_id):
         return float('inf'), []
     else:
         return min_dist[start_station_id], shortest_path
+
+
+def get_passenger_ride(db: Session, passenger_id: str, p_search: schemas.PassengerSearch):
+    query = db.query(ORMs.PassengerRide).filter(ORMs.PassengerRide.passenger_id == passenger_id)
+
+    if p_search.start_station is not None:
+        query = query.filter(ORMs.PassengerRide.start_station == p_search.start_station)
+    if p_search.end_station is not None:
+        query = query.filter(ORMs.PassengerRide.end_station == p_search.end_station)
+    if p_search.price is not None:
+        query = query.filter(ORMs.PassengerRide.price == p_search.price)
+    if p_search.start_time is not None:
+        query = query.filter(ORMs.PassengerRide.start_time >= p_search.start_time)
+    if p_search.end_time is not None:
+        query = query.filter(ORMs.PassengerRide.end_time <= p_search.end_time)
+
+    records = query.all()
+    logging.info(f"{len(records)} passengers records found")
+
+    if not records:
+        logging.warning(f"Ride not found.")
+        return None
+    else:
+        return records
+
+
+def get_card_ride(db: Session, card_cord: int, c_search: schemas.CardSearch):
+    query = db.query(ORMs.CardRide).filter(ORMs.CardRide.card_code == card_cord)
+
+    if c_search.start_station is not None:
+        query = query.filter(ORMs.CardRide.start_station == c_search.start_station)
+    if c_search.end_station is not None:
+        query = query.filter(ORMs.CardRide.end_station == c_search.end_station)
+    if c_search.price is not None:
+        query = query.filter(ORMs.CardRide.price == c_search.price)
+    if c_search.start_time is not None:
+        query = query.filter(ORMs.CardRide.start_time >= c_search.start_time)
+    if c_search.end_time is not None:
+        query = query.filter(ORMs.CardRide.end_time <= c_search.end_time)
+
+    records = query.all()
+    logging.info(f"{len(records)} card records found")
+
+    if not records:
+        logging.warning(f"Ride not found.")
+        return None
+    else:
+        return records

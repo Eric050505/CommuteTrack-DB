@@ -45,19 +45,21 @@ def place_new_stations(db: Session, line_id: int, stations: List[LinesDetailCrea
             logging.info(f"{station_id}")
             status = db.query(ORMs.Stations.status).filter(ORMs.Stations.station_id == station_id).first()[0]
             logging.info(f"{status}")
-            if status == 'running':
-                logging.info(f"Station {station_id} is running.")
-                position = station.nums
-                db.query(ORMs.LinesDetail).filter(
-                    ORMs.LinesDetail.line_id == line_id,
-                    ORMs.LinesDetail.nums >= position
-                ).update({ORMs.LinesDetail.nums: ORMs.LinesDetail.nums + 1})
-                new_line_detail = ORMs.LinesDetail(line_id=line_id, station_id=station_id, nums=position)
-                db.add(new_line_detail)
+            logging.info(f"Station {station_id} is running.")
+            position = station.nums
+            db.query(ORMs.LinesDetail).filter(
+                ORMs.LinesDetail.line_id == line_id,
+                ORMs.LinesDetail.nums >= position
+            ).update({ORMs.LinesDetail.nums: ORMs.LinesDetail.nums + 1})
+            new_line_detail = ORMs.LinesDetail(line_id=line_id, station_id=station_id, nums=position)
+            db.add(new_line_detail)
 
-        db.commit()
-        print("Stations placed in line successfully.")
-        return {"message": "Stations placed in line successfully"}
+            db.commit()
+            print("Stations placed in line successfully.")
+            if status == 'running':
+                return {"message": "Stations placed in line successfully"}
+            else:
+                return {"message": "Warning: Station not running."}
     except Exception as e:
         db.rollback()
         logging.info(f"Error adding stations to line: {e}")
@@ -153,4 +155,18 @@ def add_card(db: Session, card_create: CardCreate):
     except Exception as e:
         db.rollback()
         logging.error(f"Error adding code: {e}")
+        return None
+
+
+def add_user(db: Session, user_create: UserCreate):
+    try:
+        new_user = ORMs.UserIdentity(**user_create.dict())
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        logging.info(f"User {new_user.user_name} added successfully.")
+        return new_user
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error adding user: {e}")
         return None

@@ -1,9 +1,14 @@
-POST http://10.27.117.57:8007/add_card
+POST http://10.27.117.57:8000/place_new_stations/1
 Content-Type: application/json
 
-{
+[
+  {
+    "station_id":307,
+    "nums": 4
+  },
+  {
+    "station_id":307,
+    "nums": 4
+  }
+]
 
-        "code": 123456789,
-        "money": 10000
-
-}
