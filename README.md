@@ -1,4 +1,4 @@
-**Project of SUSTech CS307: Principles of Database Systems, Spring 2024**
+## Project of SUSTech CS307: Principles of Database Systems, Spring 2024
 
 ### Quick Start
 Backend: run  `python Server/main.py`
