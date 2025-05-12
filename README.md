@@ -1,25 +1,17 @@
-Project of Principles of Database Systems Spring 2024, SUSTech
+Project of Principles of Database Systems, Spring 2024, SUSTech
 
-### `API`
+### Quick Start
+Backend: run  `python Server/main.py`
 
-To provide basic functionality of accessing a database system, these code build a back end library which exposes a set of APIs.
+Frontend: run  `python GUI/Main.py`
 
-### `Scripts`
+### Code Explanation
+* `API`: To provide basic functionality of accessing a database system, these code build a back end library which exposes a set of APIs.
 
-Process the original recourse to generate  `.sql` `.json` `.csv` files in `Python`. Run the `.sql` and `.csv` files to import data into database.
+* `Scripts`: Process the original data recourse to generate  `.sql` `.json` `.csv` files in `Python`. Run the `.sql` or `.csv` files to import data into database.
 
-### `Scripts_in_Java`
+* `Scripts_in_Java`: Same as above but in written in `Java`. 
 
-Same as above but in`Java`. 
+* `out` & `out_from_Java`: Contain all the files that `Scripts` generated in `python` or `Java` respectively.
 
-### `out`
-
-This directory only contains all the files that `Scripts` generated.
-
-### `out_from_Java`
-
-Same as above but generated in `Java`. Create only for comparison to check whether  `Scripts_in_Java` are correct.
-
-### `recourse`
-
-This directory only contains all the recourse code that the course provided.
+* `recourse`: Contain all the recourse code that the course provided.
