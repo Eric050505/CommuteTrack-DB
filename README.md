@@ -1,5 +1,12 @@
 ## Project of SUSTech CS307: Principles of Database Systems, Spring 2024
-Contributor: [zrhlsmt](https://github.com/zrhlsmt)
+CommuteTrack-DB is a database project designed specifically for managing commute data in the Shenzhen metro system. Key features of the project include:
+
+* Recording detailed passenger commute information such as entry time, exit time, locations, and transaction amounts.
+* Utilizing ORM (Object-Relational Mapping) to simplify complex database operations.
+* Offering a frontend interface for easy data viewing and management.
+* Using asynchronous programming to handle high concurrency requests.
+
+**Contributor**: [zrhlsmt](https://github.com/zrhlsmt)
 ### Quick Start
 Backend: run  `python Server/main.py`
 
