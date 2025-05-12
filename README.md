@@ -1,5 +1,5 @@
 ## Project of SUSTech CS307: Principles of Database Systems, Spring 2024
-
+Contributor: [zrhlsmt](https://github.com/zrhlsmt)
 ### Quick Start
 Backend: run  `python Server/main.py`
 
